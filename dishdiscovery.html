@@ -897,9 +897,377 @@
         .manual-add-section .btn {
             white-space: nowrap;
         }
+
+        /* Reminder Modal Styles */
+        .reminder-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .reminder-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .reminder-header {
+            background: linear-gradient(135deg, #FFE14D 0%, #FFD700 100%);
+            color: #2C2C2C;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reminder-header h3 {
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: 700;
+        }
+
+        .reminder-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #2C2C2C;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .reminder-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .reminder-body {
+            padding: 20px;
+        }
+
+        .expiring-list {
+            margin: 15px 0;
+        }
+
+        .expiring-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .expiring-item.expires-today {
+            background: #FFEBEE;
+            border-left-color: #F44336;
+        }
+
+        .expiring-item.expires-soon {
+            background: #FFF3E0;
+            border-left-color: #FF9800;
+        }
+
+        .expiring-item.expires-in-days {
+            background: #E8F5E8;
+            border-left-color: #4CAF50;
+        }
+
+        .ingredient-name {
+            font-weight: 600;
+            color: #2C2C2C;
+        }
+
+        .expiry-info {
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .expiring-item.expires-today .expiry-info {
+            color: #F44336;
+        }
+
+        .expiring-item.expires-soon .expiry-info {
+            color: #FF9800;
+        }
+
+        .expiring-item.expires-in-days .expiry-info {
+            color: #4CAF50;
+        }
+
+        .reminder-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .expiring-summary {
+            margin-bottom: 20px;
+        }
+
+        .expiring-ingredients {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .expiring-tag {
+            background: #FFE14D;
+            color: #2C2C2C;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .recipe-suggestions-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .recipe-suggestion {
+            border: 1px solid #FAFAFA;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+
+        .recipe-suggestion.high-urgency {
+            border-left: 4px solid #F44336;
+            background: #FFEBEE;
+        }
+
+        .recipe-suggestion.medium-urgency {
+            border-left: 4px solid #FF9800;
+            background: #FFF3E0;
+        }
+
+        .recipe-suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .recipe-suggestion-header h4 {
+            margin: 0;
+            color: #2C2C2C;
+            font-size: 1.1em;
+        }
+
+        .urgency-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .urgency-badge.high {
+            background: #F44336;
+            color: white;
+        }
+
+        .urgency-badge.medium {
+            background: #FF9800;
+            color: white;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .recipe-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .notification-badge {
+            background: #F44336;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7em;
+            font-weight: 600;
+            margin-left: 5px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            z-index: 1001;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .tooltip-content {
+            background: #2C2C2C;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip-content i {
+            margin-right: 5px;
+            color: #FFE14D;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Floating Expiration Check Button */
+        .floating-expiration-btn {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #FFE14D 0%, #FFD700 100%);
+            color: #2C2C2C;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 225, 77, 0.3);
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .floating-expiration-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 225, 77, 0.4);
+        }
+
+        .floating-expiration-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .floating-expiration-btn i {
+            font-size: 16px;
+        }
+
+        .btn-text {
+            white-space: nowrap;
+        }
+
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .floating-expiration-btn {
+                left: 10px;
+                padding: 12px 15px;
+                font-size: 12px;
+            }
+            
+            .btn-text {
+                display: none;
+            }
+            
+            .floating-expiration-btn i {
+                font-size: 18px;
+            }
+        }
+
+        /* Ingredient Usage Indicators */
+        .ingredient-usage {
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .usage-excellent {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .usage-good {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .usage-fair {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .usage-poor {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .ingredient-usage i {
+            font-size: 1.1em;
+        }
     </style>
 </head>
 <body>
+    <!-- Floating Expiration Check Button -->
+    <div class="floating-expiration-btn" onclick="showExpirationAlert()">
+        <i class="fas fa-bell"></i>
+        <span class="btn-text">Check Expiring</span>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1 class="typing-title" id="typingTitle"></h1>
@@ -912,6 +1280,7 @@
         <div class="tabs">
             <div class="tab active" onclick="switchTab('recipes')">
                 <i class="fas fa-utensils"></i> Recipe Discovery
+                <span id="expiringBadge" class="notification-badge" style="display: none;">0</span>
             </div>
             <div class="tab" onclick="switchTab('calendar')">
                 <i class="fas fa-calendar-alt"></i> Meal Calendar
@@ -1066,6 +1435,12 @@
             updateGenerateButton();
             updateGroceryList();
             
+            // Initialize expiring ingredients check
+            setTimeout(() => {
+                const expiringIngredients = getExpiringIngredients();
+                updateExpiringBadge(expiringIngredients.length);
+            }, 500);
+            
             // Event listeners
             document.getElementById('ingredientForm').addEventListener('submit', handleAddIngredient);
             document.getElementById('generateRecipes').addEventListener('click', generateRecipes);
@@ -1120,6 +1495,12 @@
             saveIngredientsToStorage();
             updateIngredientsList();
             updateGenerateButton();
+            
+            // Check for expiring ingredients after adding
+            setTimeout(() => {
+                const expiringIngredients = getExpiringIngredients();
+                updateExpiringBadge(expiringIngredients.length);
+            }, 100);
         }
 
         function deleteIngredient(ingredientId) {
@@ -1128,6 +1509,12 @@
             saveIngredientsToStorage();
             updateIngredientsList();
             updateGenerateButton();
+            
+            // Check for expiring ingredients after deleting
+            setTimeout(() => {
+                const expiringIngredients = getExpiringIngredients();
+                updateExpiringBadge(expiringIngredients.length);
+            }, 100);
         }
 
         function toggleIngredientSelection(ingredientId) {
@@ -1419,6 +1806,22 @@
                     `;
                 }
 
+                // Add ingredient usage information
+                let usageInfo = '';
+                if (recipe.ingredient_usage) {
+                    const usage = recipe.ingredient_usage;
+                    const usageClass = usage.percentage >= 80 ? 'usage-excellent' : 
+                                     usage.percentage >= 60 ? 'usage-good' : 
+                                     usage.percentage >= 40 ? 'usage-fair' : 'usage-poor';
+                    
+                    usageInfo = `
+                        <div class="ingredient-usage ${usageClass}">
+                            <i class="fas fa-percentage"></i>
+                            <span>Uses ${usage.used}/${usage.total} ingredients (${usage.percentage}%)</span>
+                        </div>
+                    `;
+                }
+
                 // Ensure ingredients is an array and clean the data
                 let ingredients = Array.isArray(recipe.ingredients) ? recipe.ingredients : [];
                 ingredients = ingredients.filter(ingredient => ingredient && ingredient.trim() !== '');
@@ -1441,6 +1844,7 @@
                                 ${sourceIcon} ${recipe.source || 'Unknown'}
                             </div>
                             <div class="recipe-title">${recipe.name || 'Untitled Recipe'}</div>
+                            ${usageInfo}
                             ${additionalInfo}
                             <div class="recipe-ingredients">
                                 <strong><i class="fas fa-list"></i> Ingredients:</strong>
@@ -1970,6 +2374,345 @@
             addToGroceryList(itemName, 'Manual Entry');
             input.value = ''; // Clear the input after adding
         }
+
+        // Reminder System Functions
+        let reminderCheckInterval;
+        let lastReminderCheck = 0;
+
+        function initializeReminderSystem() {
+            // Check for expiring ingredients every 30 minutes
+            reminderCheckInterval = setInterval(checkExpiringIngredients, 30 * 60 * 1000);
+            
+            // Show expiration alert immediately when page loads
+            setTimeout(showExpirationAlert, 2000);
+            
+            // Check when ingredients are added or updated
+            const originalAddIngredient = addIngredient;
+            addIngredient = function(name, expiryDate) {
+                originalAddIngredient(name, expiryDate);
+                setTimeout(checkExpiringIngredients, 1000);
+            };
+        }
+
+        function checkExpiringIngredients() {
+            const expiringIngredients = getExpiringIngredients();
+            
+            // Update notification badge
+            updateExpiringBadge(expiringIngredients.length);
+            
+            return expiringIngredients;
+        }
+
+        function showExpirationAlert() {
+            const expiringIngredients = getExpiringIngredients();
+            
+            if (expiringIngredients.length > 0) {
+                showExpirationReminder(expiringIngredients);
+            } else {
+                // Show a message that no ingredients are expiring
+                const modal = document.createElement('div');
+                modal.className = 'reminder-modal';
+                modal.innerHTML = `
+                    <div class="reminder-content">
+                        <div class="reminder-header">
+                            <h3><i class="fas fa-check-circle"></i> All Good!</h3>
+                            <button class="reminder-close" onclick="closeReminderModal()">&times;</button>
+                        </div>
+                        <div class="reminder-body">
+                            <p>🎉 Great news! You don't have any ingredients expiring soon.</p>
+                            <p>All your ingredients are fresh and ready to use!</p>
+                            <div class="reminder-actions">
+                                <button class="btn btn-success" onclick="closeReminderModal()">
+                                    <i class="fas fa-thumbs-up"></i> Awesome!
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Auto-close after 5 seconds
+                setTimeout(() => {
+                    if (document.body.contains(modal)) {
+                        closeReminderModal();
+                    }
+                }, 5000);
+            }
+        }
+
+        function updateExpiringBadge(count) {
+            const badge = document.getElementById('expiringBadge');
+            const floatingBtn = document.querySelector('.floating-expiration-btn');
+            
+            if (badge) {
+                const wasHidden = badge.style.display === 'none' || badge.style.display === '';
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'inline';
+                    
+                    // Show a subtle tooltip the first time the badge appears
+                    if (wasHidden && !localStorage.getItem('badgeTooltipShown')) {
+                        setTimeout(() => {
+                            showBadgeTooltip();
+                        }, 1000);
+                    }
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            // Update floating button text and style
+            if (floatingBtn) {
+                const btnText = floatingBtn.querySelector('.btn-text');
+                if (btnText) {
+                    if (count > 0) {
+                        btnText.textContent = `Check Expiring (${count})`;
+                        floatingBtn.style.background = 'linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%)';
+                        floatingBtn.style.color = 'white';
+                        floatingBtn.style.animation = 'pulse 2s infinite';
+                    } else {
+                        btnText.textContent = 'Check Expiring';
+                        floatingBtn.style.background = 'linear-gradient(135deg, #FFE14D 0%, #FFD700 100%)';
+                        floatingBtn.style.color = '#2C2C2C';
+                        floatingBtn.style.animation = 'none';
+                    }
+                }
+            }
+        }
+
+        function showBadgeTooltip() {
+            const badge = document.getElementById('expiringBadge');
+            if (badge) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'badge-tooltip';
+                tooltip.innerHTML = `
+                    <div class="tooltip-content">
+                        <i class="fas fa-bell"></i>
+                        <span>You have ingredients expiring soon! Click to see details.</span>
+                    </div>
+                `;
+                
+                badge.appendChild(tooltip);
+                localStorage.setItem('badgeTooltipShown', 'true');
+                
+                // Remove tooltip after 5 seconds
+                setTimeout(() => {
+                    if (tooltip.parentNode) {
+                        tooltip.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        function getExpiringIngredients() {
+            const expiringIngredients = [];
+            const today = new Date();
+            
+            ingredients.forEach(ingredient => {
+                const daysUntilExpiry = getDaysUntilExpiry(ingredient.expiry_date);
+                
+                // Check for ingredients expiring in 3 days or less
+                if (daysUntilExpiry >= 0 && daysUntilExpiry <= 3) {
+                    expiringIngredients.push({
+                        ...ingredient,
+                        days_until_expiry: daysUntilExpiry
+                    });
+                }
+            });
+            
+            return expiringIngredients;
+        }
+
+        function showExpirationReminder(expiringIngredients) {
+            // Create reminder modal
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.innerHTML = `
+                <div class="reminder-content">
+                    <div class="reminder-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Ingredient Expiration Alert</h3>
+                        <button class="reminder-close" onclick="closeReminderModal()">&times;</button>
+                    </div>
+                    <div class="reminder-body">
+                        <p>You have <strong>${expiringIngredients.length}</strong> ingredient(s) expiring soon:</p>
+                        <div class="expiring-list">
+                            ${expiringIngredients.map(ing => `
+                                <div class="expiring-item ${ing.days_until_expiry === 0 ? 'expires-today' : ing.days_until_expiry <= 1 ? 'expires-soon' : 'expires-in-days'}">
+                                    <span class="ingredient-name">${ing.name}</span>
+                                    <span class="expiry-info">
+                                        ${ing.days_until_expiry === 0 ? 'Expires today!' : 
+                                          ing.days_until_expiry === 1 ? 'Expires tomorrow!' : 
+                                          `Expires in ${ing.days_until_expiry} days`}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn btn-success" onclick="getRecipesForExpiringIngredients(${JSON.stringify(expiringIngredients).replace(/"/g, '&quot;')})">
+                                <i class="fas fa-utensils"></i> Get Recipe Suggestions
+                            </button>
+                            <button class="btn btn-danger" onclick="closeReminderModal()">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Auto-close after 15 seconds if user doesn't interact
+            setTimeout(() => {
+                if (document.body.contains(modal)) {
+                    closeReminderModal();
+                }
+            }, 15000);
+        }
+
+        function closeReminderModal() {
+            const modal = document.querySelector('.reminder-modal');
+            if (modal) {
+                modal.remove();
+                // Track when user dismissed the reminder
+                localStorage.setItem('lastReminderDismissed', Date.now().toString());
+            }
+        }
+
+        async function getRecipesForExpiringIngredients(expiringIngredients) {
+            try {
+                const response = await fetch('http://localhost:5000/api/reminders/recipes-for-expiring', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ingredients: expiringIngredients
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.recipes && data.recipes.length > 0) {
+                    showRecipeSuggestions(data.recipes, expiringIngredients);
+                } else {
+                    alert('No recipes found for your expiring ingredients. Try searching manually!');
+                }
+                
+                closeReminderModal();
+            } catch (error) {
+                console.error('Error getting recipes for expiring ingredients:', error);
+                alert('Error getting recipe suggestions. Please try searching manually!');
+            }
+        }
+
+        function showRecipeSuggestions(recipes, expiringIngredients) {
+            // Create recipe suggestions modal
+            const modal = document.createElement('div');
+            modal.className = 'reminder-modal';
+            modal.innerHTML = `
+                <div class="reminder-content recipe-suggestions">
+                    <div class="reminder-header">
+                        <h3><i class="fas fa-utensils"></i> Recipe Suggestions for Expiring Ingredients</h3>
+                        <button class="reminder-close" onclick="closeReminderModal()">&times;</button>
+                    </div>
+                    <div class="reminder-body">
+                        <div class="expiring-summary">
+                            <p>Use these recipes to make the most of your expiring ingredients:</p>
+                            <div class="expiring-ingredients">
+                                ${expiringIngredients.map(ing => `
+                                    <span class="expiring-tag">${ing.name}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="recipe-suggestions-list">
+                            ${recipes.map((recipe, index) => `
+                                <div class="recipe-suggestion ${recipe.urgency === 'high' ? 'high-urgency' : 'medium-urgency'}">
+                                    <div class="recipe-suggestion-header">
+                                        <h4>${recipe.title || recipe.name}</h4>
+                                        <span class="urgency-badge ${recipe.urgency}">${recipe.urgency === 'high' ? 'Urgent' : 'Use Soon'}</span>
+                                    </div>
+                                    <div class="recipe-suggestion-content">
+                                        <div class="recipe-meta">
+                                            <span><i class="fas fa-clock"></i> ${recipe.readyInMinutes || '30'} min</span>
+                                            <span><i class="fas fa-star"></i> ${recipe.spoonacularScore || 'N/A'}</span>
+                                        </div>
+                                        <div class="recipe-actions">
+                                            <button class="btn btn-small" onclick="selectRecipeForCooking(${index})">
+                                                <i class="fas fa-eye"></i> View Recipe
+                                            </button>
+                                            <button class="btn btn-small btn-success" onclick="addRecipeToCalendar(${index})">
+                                                <i class="fas fa-calendar-plus"></i> Schedule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="reminder-actions">
+                            <button class="btn btn-success" onclick="switchTab('recipes')">
+                                <i class="fas fa-search"></i> Search More Recipes
+                            </button>
+                            <button class="btn btn-danger" onclick="closeReminderModal()">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Store recipes globally for access by other functions
+            window.expiringRecipes = recipes;
+        }
+
+        function selectRecipeForCooking(recipeIndex) {
+            const recipe = window.expiringRecipes[recipeIndex];
+            if (recipe) {
+                // Switch to recipes tab and show this recipe
+                switchTab('recipes');
+                closeReminderModal();
+                
+                // You could implement logic here to pre-select the ingredients for this recipe
+                // For now, just show a message
+                setTimeout(() => {
+                    alert(`Recipe "${recipe.title || recipe.name}" selected. Use the recipe search to find similar recipes with your ingredients!`);
+                }, 500);
+            }
+        }
+
+        function addRecipeToCalendar(recipeIndex) {
+            const recipe = window.expiringRecipes[recipeIndex];
+            if (recipe) {
+                // Switch to calendar tab
+                switchTab('calendar');
+                closeReminderModal();
+                
+                // Pre-fill the meal name
+                setTimeout(() => {
+                    const mealNameInput = document.getElementById('mealNameInput');
+                    if (mealNameInput) {
+                        mealNameInput.value = recipe.title || recipe.name;
+                        // Select today's date
+                        const today = new Date();
+                        const todayString = today.getFullYear() + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(today.getDate()).padStart(2, '0');
+                        selectDate(todayString);
+                    }
+                }, 500);
+            }
+        }
+
+        // Initialize reminder system when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeReminderSystem();
+        });
     </script>
 </body>
 </html>
