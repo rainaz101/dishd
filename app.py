@@ -282,7 +282,7 @@ STORAGE:
     return instructions.strip()
 
 def generate_fallback_recipes(ingredients):
-    """Generate practical fallback recipes that use ALL selected ingredients, with comprehensive, non-repeating instructions"""
+    """Generate practical fallback recipes that use ALL selected ingredients with ingredient-specific instructions"""
     if not ingredients:
         return []
     
@@ -296,58 +296,121 @@ def generate_fallback_recipes(ingredients):
             seen.add(ing_lower)
     ingredients = deduped_ingredients
     
-    recipes = []
+    # Categorize ingredients
+    def categorize_ingredients(ingredients):
+        vegetables = []
+        proteins = []
+        condiments = []
+        grains = []
+        dairy = []
+        fruits = []
+        herbs_spices = []
+        
+        for ing in ingredients:
+            ing_lower = ing.lower()
+            if any(veg in ing_lower for veg in ['tomato', 'onion', 'garlic', 'carrot', 'broccoli', 'zucchini', 'pepper', 'mushroom', 'spinach', 'kale', 'lettuce', 'cucumber', 'celery', 'potato', 'sweet potato', 'cauliflower', 'brussels sprouts', 'asparagus', 'green bean', 'pea', 'corn', 'bell pepper', 'jalapeño', 'chili']):
+                vegetables.append(ing)
+            elif any(prot in ing_lower for prot in ['chicken', 'beef', 'pork', 'fish', 'shrimp', 'salmon', 'tuna', 'turkey', 'lamb', 'egg', 'tofu', 'tempeh', 'bean', 'lentil']):
+                proteins.append(ing)
+            elif any(cond in ing_lower for cond in ['ketchup', 'mustard', 'mayo', 'sauce', 'dressing', 'vinegar', 'oil', 'butter', 'honey', 'syrup', 'jam', 'jelly']):
+                condiments.append(ing)
+            elif any(grain in ing_lower for grain in ['rice', 'pasta', 'bread', 'quinoa', 'couscous', 'oat', 'flour', 'noodle']):
+                grains.append(ing)
+            elif any(dairy_item in ing_lower for dairy_item in ['milk', 'cheese', 'yogurt', 'cream', 'butter', 'sour cream']):
+                dairy.append(ing)
+            elif any(fruit in ing_lower for fruit in ['apple', 'banana', 'orange', 'lemon', 'lime', 'berry', 'grape', 'peach', 'pear', 'mango', 'pineapple']):
+                fruits.append(ing)
+            elif any(herb in ing_lower for herb in ['basil', 'oregano', 'thyme', 'rosemary', 'sage', 'parsley', 'cilantro', 'mint', 'dill', 'chive', 'ginger', 'garlic', 'onion']):
+                herbs_spices.append(ing)
+            else:
+                # Default to vegetables for unknown ingredients
+                vegetables.append(ing)
+        
+        return {
+            'vegetables': vegetables,
+            'proteins': proteins,
+            'condiments': condiments,
+            'grains': grains,
+            'dairy': dairy,
+            'fruits': fruits,
+            'herbs_spices': herbs_spices
+        }
     
     # Helper to add extra ingredients only if not already present
     def add_unique_ingredients(base, extras):
         base_lower = set(i.lower() for i in base)
         return base + [e for e in extras if e.lower() not in base_lower]
-
-    # Helper to build comprehensive steps without repeating ingredients
-    def build_comprehensive_steps(steps_data):
-        used_ingredients = set()
-        result = []
-        
-        for step_info in steps_data:
-            desc, ings, step_num = step_info
-            # Only include ingredients that haven't been used yet
-            unused_ings = [i for i in ings if i.lower() not in used_ingredients]
-            
-            if unused_ings:
-                used_ingredients.update(i.lower() for i in unused_ings)
-                # Format the description with the unused ingredients
-                formatted_desc = desc.format(ingredients=', '.join(unused_ings))
-                result.append(f"{step_num}. {formatted_desc}")
-            elif not ings:  # Step with no specific ingredients
-                result.append(f"{step_num}. {desc}")
-        
-        return result
+    
+    # Get ingredient categories
+    categories = categorize_ingredients(ingredients)
+    recipes = []
 
     # Recipe 1: Stir Fry (uses all ingredients)
     if len(ingredients) >= 2:
-        stirfry_extras = ['soy sauce', 'sesame oil', 'garlic', 'ginger', 'vegetable oil', 'salt', 'black pepper']
+        stirfry_extras = ['soy sauce', 'sesame oil', 'vegetable oil', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, stirfry_extras)
         
-        steps_data = [
-            ("Heat 2 tablespoons vegetable oil in a large wok or deep skillet over high heat until oil is shimmering.", ['vegetable oil'], 1),
-            ("Add minced garlic and ginger, stir-fry for 30 seconds until fragrant and golden.", ['garlic', 'ginger'], 2),
-            ("Add {ingredients} and stir-fry for 3-4 minutes, tossing constantly until vegetables are bright in color and slightly tender.", ingredients, 3),
-            ("Pour in 2 tablespoons soy sauce and 1 tablespoon sesame oil, tossing to coat all ingredients evenly.", ['soy sauce', 'sesame oil'], 4),
-            ("Season with salt and black pepper to taste, continuing to stir-fry for 1-2 minutes.", ['salt', 'black pepper'], 5),
-            ("Remove from heat when vegetables are tender-crisp and serve immediately over steamed rice or noodles.", [], 6),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into uniform pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Heat 2 tablespoons vegetable oil in a large wok or deep skillet over high heat until oil is shimmering.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} and stir-fry for 30 seconds until fragrant and golden.")
+            step_num += 1
+        
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            cooking_steps.append(f"{step_num}. Add {protein_list} and stir-fry for 3-4 minutes until nearly cooked through.")
+            step_num += 1
+        
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            cooking_steps.append(f"{step_num}. Add {veg_list} and stir-fry for 3-4 minutes, tossing constantly until bright in color and slightly tender.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} and stir-fry for 1-2 minutes, tossing to coat all ingredients evenly.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Pour in 2 tablespoons soy sauce and 1 tablespoon sesame oil, tossing to coat all ingredients evenly.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with salt and black pepper to taste, continuing to stir-fry for 1-2 minutes.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Remove from heat when all ingredients are cooked through and serve immediately over steamed rice or noodles.")
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
             "• Keep the heat high throughout cooking for authentic stir-fry texture",
             "• Don't overcrowd the pan - cook in batches if needed",
             "• Stir constantly to prevent burning and ensure even cooking",
-            "• Vegetables should be tender-crisp, not mushy",
+            "• Cook proteins first, then add vegetables",
             "• Serve immediately for best texture and flavor",
             "",
             "TIMING:",
@@ -371,33 +434,78 @@ def generate_fallback_recipes(ingredients):
     
     # Recipe 2: Roasted Vegetables (uses all ingredients)
     if len(ingredients) >= 2:
-        roast_extras = ['olive oil', 'garlic', 'rosemary', 'thyme', 'salt', 'black pepper']
+        roast_extras = ['olive oil', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, roast_extras)
         
-        steps_data = [
-            ("Preheat oven to 425°F (220°C) and position rack in the middle of the oven.", [], 1),
-            ("Wash and cut {ingredients} into similar-sized pieces, approximately 1-inch cubes or wedges.", ingredients, 2),
-            ("Place {ingredients} on a large rimmed baking sheet, ensuring pieces are in a single layer with space between them.", ingredients, 3),
-            ("Drizzle with 3 tablespoons olive oil and toss thoroughly to coat all pieces evenly.", ['olive oil'], 4),
-            ("Sprinkle minced garlic, chopped fresh rosemary, and thyme over the vegetables.", ['garlic', 'rosemary', 'thyme'], 5),
-            ("Season generously with salt and black pepper, tossing again to distribute seasonings.", ['salt', 'black pepper'], 6),
-            ("Roast in preheated oven for 25-30 minutes, stirring and flipping pieces halfway through cooking time.", [], 7),
-            ("Remove from oven when vegetables are tender, slightly caramelized, and edges are golden brown.", [], 8),
-            ("Let rest for 5 minutes before serving to allow flavors to meld.", [], 9),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into similar-sized pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into uniform pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Preheat oven to 425°F (220°C) and position rack in the middle of the oven.")
+        step_num += 1
+        
+        # Combine all ingredients for roasting
+        all_ingredient_list = []
+        for category in ['vegetables', 'proteins']:
+            if categories[category]:
+                all_ingredient_list.extend(categories[category])
+        
+        if all_ingredient_list:
+            ingredient_list = ', '.join(all_ingredient_list)
+            cooking_steps.append(f"{step_num}. Place {ingredient_list} on a large rimmed baking sheet, ensuring pieces are in a single layer with space between them.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Drizzle with 3 tablespoons olive oil and toss thoroughly to coat all pieces evenly.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Sprinkle minced {herb_list} over the ingredients.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Drizzle {condiment_list} over the ingredients and toss to coat evenly.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season generously with salt and black pepper, tossing again to distribute seasonings.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Roast in preheated oven for 25-30 minutes, stirring and flipping pieces halfway through cooking time.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Remove from oven when all ingredients are tender, slightly caramelized, and edges are golden brown.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Let rest for 5 minutes before serving to allow flavors to meld.")
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
-            "• Cut vegetables to similar sizes for even cooking",
+            "• Cut ingredients to similar sizes for even cooking",
             "• Don't overcrowd the baking sheet - use two sheets if needed",
             "• Stir halfway through for even browning and cooking",
-            "• Adjust cooking time based on vegetable types and sizes",
-            "• Vegetables should be tender but not mushy",
+            "• Adjust cooking time based on ingredient types and sizes",
+            "• Ingredients should be tender but not mushy",
             "",
             "TIMING:",
             "• Preparation time: 20 minutes",
@@ -420,30 +528,71 @@ def generate_fallback_recipes(ingredients):
     
     # Recipe 3: Hearty Soup (uses all ingredients)
     if len(ingredients) >= 2:
-        soup_extras = ['chicken broth', 'onion', 'garlic', 'olive oil', 'bay leaves', 'salt', 'black pepper']
+        soup_extras = ['chicken broth', 'olive oil', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, soup_extras)
         
-        steps_data = [
-            ("Wash and cut {ingredients} into uniform, bite-sized pieces. Dice 1 large onion and mince 4 cloves garlic.", ingredients + ['onion', 'garlic'], 1),
-            ("Heat 2 tablespoons olive oil in a large, heavy-bottomed pot over medium heat until oil is shimmering.", ['olive oil'], 2),
-            ("Add diced onion and sauté for 5-6 minutes, stirring occasionally, until onions are translucent and softened.", ['onion'], 3),
-            ("Add minced garlic and cook for 1 minute, stirring constantly, until fragrant but not browned.", ['garlic'], 4),
-            ("Add {ingredients} to the pot and stir to combine with onions and garlic.", ingredients, 5),
-            ("Pour in 8 cups of chicken broth and add 2 bay leaves. Bring mixture to a gentle boil.", ['chicken broth', 'bay leaves'], 6),
-            ("Reduce heat to low and simmer uncovered for 25-30 minutes, stirring occasionally.", [], 7),
-            ("Season with salt and black pepper to taste, starting with 1 teaspoon salt and 1/2 teaspoon black pepper.", ['salt', 'black pepper'], 8),
-            ("Remove bay leaves before serving. Taste and adjust seasoning if needed.", ['bay leaves'], 9),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into uniform, bite-sized pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Heat 2 tablespoons olive oil in a large, heavy-bottomed pot over medium heat until oil is shimmering.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} and cook for 1 minute, stirring constantly, until fragrant but not browned.")
+            step_num += 1
+        
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            cooking_steps.append(f"{step_num}. Add {protein_list} and cook for 3-4 minutes, stirring occasionally, until lightly browned.")
+            step_num += 1
+        
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            cooking_steps.append(f"{step_num}. Add {veg_list} to the pot and stir to combine with other ingredients.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} to the pot and stir to combine.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Pour in 8 cups of chicken broth and bring mixture to a gentle boil.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Reduce heat to low and simmer uncovered for 25-30 minutes, stirring occasionally.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with salt and black pepper to taste, starting with 1 teaspoon salt and 1/2 teaspoon black pepper.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Taste and adjust seasoning if needed, then serve hot.")
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
             "• Use homemade or high-quality chicken broth for better flavor",
-            "• Simmer gently to develop flavors without overcooking vegetables",
+            "• Simmer gently to develop flavors without overcooking ingredients",
             "• Taste and adjust seasoning throughout cooking process",
             "• Let soup rest for 10 minutes before serving to allow flavors to meld",
             "• Soup can be made ahead and reheated gently",
@@ -469,27 +618,74 @@ def generate_fallback_recipes(ingredients):
     
     # Recipe 4: Pasta Dish (uses all ingredients)
     if len(ingredients) >= 2:
-        pasta_extras = ['spaghetti', 'olive oil', 'garlic', 'basil', 'parmesan cheese', 'salt', 'black pepper']
+        pasta_extras = ['spaghetti', 'olive oil', 'parmesan cheese', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, pasta_extras)
         
-        steps_data = [
-            ("Bring a large pot of water to a rolling boil and add 2 tablespoons salt to season the pasta water.", ['salt'], 1),
-            ("Wash and cut {ingredients} into small, uniform pieces suitable for pasta.", ingredients, 2),
-            ("Cook 1 pound of spaghetti in the boiling water according to package directions until al dente (usually 8-10 minutes).", ['spaghetti'], 3),
-            ("While pasta cooks, heat 3 tablespoons olive oil in a large skillet over medium heat until oil is shimmering.", ['olive oil'], 4),
-            ("Add minced garlic and cook for 1 minute, stirring constantly, until fragrant but not browned.", ['garlic'], 5),
-            ("Add {ingredients} and sauté for 6-7 minutes, stirring occasionally, until vegetables are tender and slightly caramelized.", ingredients, 6),
-            ("Drain pasta, reserving 1 cup of the starchy cooking water for sauce consistency.", ['spaghetti'], 7),
-            ("Add cooked pasta to the skillet with vegetables and toss to combine thoroughly.", ['spaghetti'], 8),
-            ("Add reserved pasta water gradually, tossing constantly, until sauce coats pasta evenly (use 1/2 to 1 cup).", [], 9),
-            ("Season with salt and black pepper to taste, then serve immediately with grated parmesan cheese and fresh basil.", ['salt', 'black pepper', 'parmesan cheese', 'basil'], 10),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into small, uniform pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Bring a large pot of water to a rolling boil and add 2 tablespoons salt to season the pasta water.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Cook 1 pound of spaghetti in the boiling water according to package directions until al dente (usually 8-10 minutes).")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. While pasta cooks, heat 3 tablespoons olive oil in a large skillet over medium heat until oil is shimmering.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} and cook for 1 minute, stirring constantly, until fragrant but not browned.")
+            step_num += 1
+        
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            cooking_steps.append(f"{step_num}. Add {protein_list} and cook for 3-4 minutes, stirring occasionally, until nearly cooked through.")
+            step_num += 1
+        
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            cooking_steps.append(f"{step_num}. Add {veg_list} and sauté for 4-5 minutes, stirring occasionally, until tender and slightly caramelized.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} and stir to combine with other ingredients.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Drain pasta, reserving 1 cup of the starchy cooking water for sauce consistency.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Add cooked pasta to the skillet with other ingredients and toss to combine thoroughly.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Add reserved pasta water gradually, tossing constantly, until sauce coats pasta evenly (use 1/2 to 1 cup).")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with salt and black pepper to taste, then serve immediately with grated parmesan cheese.")
+        step_num += 1
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
             "• Salt the pasta water well - it should taste like seawater",
@@ -519,23 +715,57 @@ def generate_fallback_recipes(ingredients):
     
     # Recipe 5: Fresh Salad (uses all ingredients)
     if len(ingredients) >= 2:
-        salad_extras = ['olive oil', 'lemon juice', 'garlic', 'honey', 'salt', 'black pepper']
+        salad_extras = ['olive oil', 'lemon juice', 'honey', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, salad_extras)
         
-        steps_data = [
-            ("Wash and thoroughly dry all {ingredients}. Cut into uniform, bite-sized pieces suitable for salad.", ingredients, 1),
-            ("In a small bowl, whisk together 3 tablespoons olive oil, 2 tablespoons fresh lemon juice, and 1 teaspoon honey until emulsified.", ['olive oil', 'lemon juice', 'honey'], 2),
-            ("Add minced garlic, 1/2 teaspoon salt, and 1/4 teaspoon black pepper to the dressing and whisk to combine.", ['garlic', 'salt', 'black pepper'], 3),
-            ("Place {ingredients} in a large salad bowl and drizzle with half of the prepared dressing.", ingredients, 4),
-            ("Toss salad gently to coat ingredients evenly with dressing, being careful not to bruise delicate ingredients.", [], 5),
-            ("Let salad rest for 5 minutes to allow flavors to meld, then serve with remaining dressing on the side.", [], 6),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and thoroughly dry {veg_list}")
+        if categories['fruits']:
+            fruit_list = ', '.join(categories['fruits'])
+            prep_ingredients.append(f"wash and cut {fruit_list} into bite-sized pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cook {protein_list} if needed, then cut into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. In a small bowl, whisk together 3 tablespoons olive oil, 2 tablespoons fresh lemon juice, and 1 teaspoon honey until emulsified.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Add 1/2 teaspoon salt and 1/4 teaspoon black pepper to the dressing and whisk to combine.")
+        step_num += 1
+        
+        # Combine all ingredients for salad
+        all_ingredient_list = []
+        for category in ['vegetables', 'fruits', 'proteins', 'herbs_spices', 'condiments']:
+            if categories[category]:
+                all_ingredient_list.extend(categories[category])
+        
+        if all_ingredient_list:
+            ingredient_list = ', '.join(all_ingredient_list)
+            cooking_steps.append(f"{step_num}. Place {ingredient_list} in a large salad bowl and drizzle with half of the prepared dressing.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Toss salad gently to coat ingredients evenly with dressing, being careful not to bruise delicate ingredients.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Let salad rest for 5 minutes to allow flavors to meld, then serve with remaining dressing on the side.")
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
             "• Use fresh, crisp ingredients for best texture",
@@ -565,31 +795,71 @@ def generate_fallback_recipes(ingredients):
     
     # Recipe 6: Skillet Dish (uses all ingredients)
     if len(ingredients) >= 2:
-        skillet_extras = ['olive oil', 'garlic', 'herbs', 'butter', 'salt', 'black pepper']
+        skillet_extras = ['olive oil', 'butter', 'salt', 'black pepper']
         all_ings = add_unique_ingredients(ingredients, skillet_extras)
         
-        steps_data = [
-            ("Wash and cut {ingredients} into uniform pieces. Mince 3 cloves garlic and chop 2 tablespoons fresh herbs.", ingredients + ['garlic', 'herbs'], 1),
-            ("Heat 2 tablespoons olive oil and 1 tablespoon butter in a large skillet over medium heat until butter is melted and oil is shimmering.", ['olive oil', 'butter'], 2),
-            ("Add minced garlic and cook for 1 minute, stirring constantly, until fragrant but not browned.", ['garlic'], 3),
-            ("Add {ingredients} and cook for 4-5 minutes, stirring occasionally, until vegetables are bright in color and slightly tender.", ingredients, 4),
-            ("Add chopped fresh herbs and season with 1/2 teaspoon salt and 1/4 teaspoon black pepper.", ['herbs', 'salt', 'black pepper'], 5),
-            ("Continue cooking for 3-4 minutes, stirring occasionally, until all ingredients are tender and flavors are well combined.", [], 6),
-            ("Remove from heat and let rest for 2 minutes before serving to allow flavors to meld.", [], 7),
-        ]
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into uniform pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Heat 2 tablespoons olive oil and 1 tablespoon butter in a large skillet over medium heat until butter is melted and oil is shimmering.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} and cook for 1 minute, stirring constantly, until fragrant but not browned.")
+            step_num += 1
+        
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            cooking_steps.append(f"{step_num}. Add {protein_list} and cook for 3-4 minutes, stirring occasionally, until nearly cooked through.")
+            step_num += 1
+        
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            cooking_steps.append(f"{step_num}. Add {veg_list} and cook for 4-5 minutes, stirring occasionally, until bright in color and slightly tender.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} and stir to combine with other ingredients.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with 1/2 teaspoon salt and 1/4 teaspoon black pepper.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Continue cooking for 3-4 minutes, stirring occasionally, until all ingredients are tender and flavors are well combined.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Remove from heat and let rest for 2 minutes before serving to allow flavors to meld.")
         
         instructions = [
             "COOKING STEPS:",
-        ]
-        instructions += build_comprehensive_steps(steps_data)
-        instructions += [
+        ] + cooking_steps + [
             "",
             "COOKING TIPS:",
             "• Don't overcrowd the skillet - cook in batches if needed",
             "• Cook ingredients in order of cooking time needed",
             "• Season gradually and taste as you go",
             "• Use fresh herbs for best flavor and aroma",
-            "• Vegetables should be tender but still have some texture",
+            "• Ingredients should be tender but still have some texture",
             "",
             "TIMING:",
             "• Preparation time: 20 minutes",
@@ -609,8 +879,192 @@ def generate_fallback_recipes(ingredients):
             'prep_time': '20 min',
             'cook_time': '12 min'
         })
+    
+    # Recipe 7: Grilled Dish (uses all ingredients)
+    if len(ingredients) >= 2:
+        grill_extras = ['olive oil', 'lemon', 'salt', 'black pepper']
+        all_ings = add_unique_ingredients(ingredients, grill_extras)
+        
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into grill-friendly pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into pieces suitable for grilling")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Preheat grill to medium-high heat (400-450°F).")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. In a large bowl, combine 3 tablespoons olive oil and juice of 1 lemon.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} to the marinade and mix well.")
+            step_num += 1
+        
+        # Add condiments to marinade if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} to the marinade and mix well.")
+            step_num += 1
+        
+        # Combine all ingredients for marinating
+        all_ingredient_list = []
+        for category in ['vegetables', 'proteins']:
+            if categories[category]:
+                all_ingredient_list.extend(categories[category])
+        
+        if all_ingredient_list:
+            ingredient_list = ', '.join(all_ingredient_list)
+            cooking_steps.append(f"{step_num}. Add {ingredient_list} to the marinade and toss to coat evenly. Let marinate for 10 minutes.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Place marinated ingredients on preheated grill, ensuring pieces are not overcrowded.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Grill for 4-6 minutes per side, depending on ingredient type, until charred and tender.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with salt and black pepper to taste while grilling.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Remove from grill when ingredients are tender and have nice grill marks.")
+        
+        instructions = [
+            "COOKING STEPS:",
+        ] + cooking_steps + [
+            "",
+            "COOKING TIPS:",
+            "• Clean and oil the grill grates before cooking",
+            "• Don't move ingredients too much - let them develop grill marks",
+            "• Use a grill basket for smaller pieces",
+            "• Monitor heat to prevent burning",
+            "• Let ingredients rest for 2-3 minutes after grilling",
+            "",
+            "TIMING:",
+            "• Preparation time: 25 minutes",
+            "• Cooking time: 15 minutes",
+            "• Total time: 40 minutes",
+            "• Servings: 4 people"
+        ]
+        
+        recipes.append({
+            'name': f"Char-Grilled {', '.join(ingredients[:2]).title()} Medley",
+            'ingredients': all_ings,
+            'instructions': '\n'.join(instructions),
+            'image': '🔥',
+            'source': 'Practical Recipe',
+            'cuisine': 'American',
+            'difficulty': 'Medium',
+            'prep_time': '25 min',
+            'cook_time': '15 min'
+        })
+    
+    # Recipe 8: Curry Dish (uses all ingredients)
+    if len(ingredients) >= 2:
+        curry_extras = ['coconut milk', 'curry powder', 'salt', 'black pepper']
+        all_ings = add_unique_ingredients(ingredients, curry_extras)
+        
+        # Create cooking steps that include all ingredients
+        cooking_steps = []
+        step_num = 1
+        
+        # Preparation step that includes all ingredients
+        prep_ingredients = []
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            prep_ingredients.append(f"wash and cut {veg_list} into uniform pieces")
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            prep_ingredients.append(f"cut {protein_list} into bite-sized pieces")
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            prep_ingredients.append(f"mince {herb_list} finely")
+        
+        if prep_ingredients:
+            cooking_steps.append(f"{step_num}. {', '.join(prep_ingredients)}.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Heat 2 tablespoons oil in a large pot over medium heat.")
+        step_num += 1
+        
+        if categories['herbs_spices']:
+            herb_list = ', '.join(categories['herbs_spices'])
+            cooking_steps.append(f"{step_num}. Add minced {herb_list} and cook for 1 minute until fragrant.")
+            step_num += 1
+        
+        if categories['proteins']:
+            protein_list = ', '.join(categories['proteins'])
+            cooking_steps.append(f"{step_num}. Add {protein_list} and cook for 3-4 minutes, stirring occasionally, until lightly browned.")
+            step_num += 1
+        
+        if categories['vegetables']:
+            veg_list = ', '.join(categories['vegetables'])
+            cooking_steps.append(f"{step_num}. Add {veg_list} and stir to combine with other ingredients.")
+            step_num += 1
+        
+        # Add condiments if present
+        if categories['condiments']:
+            condiment_list = ', '.join(categories['condiments'])
+            cooking_steps.append(f"{step_num}. Add {condiment_list} and stir to combine with other ingredients.")
+            step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Pour in 1 can (14 oz) coconut milk and add 2 tablespoons curry powder. Stir well to combine.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Bring to a gentle simmer and cook for 20-25 minutes, stirring occasionally, until all ingredients are tender.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Season with salt and black pepper to taste. Simmer for 5 more minutes to develop flavors.")
+        step_num += 1
+        
+        cooking_steps.append(f"{step_num}. Taste and adjust seasoning if needed, then serve hot with rice or naan bread.")
+        
+        instructions = [
+            "COOKING STEPS:",
+        ] + cooking_steps + [
+            "",
+            "COOKING TIPS:",
+            "• Use full-fat coconut milk for richer flavor",
+            "• Adjust curry powder amount to your spice preference",
+            "• Simmer gently to prevent coconut milk from separating",
+            "• Taste and adjust seasoning throughout cooking",
+            "• Serve with rice or naan bread",
+            "",
+            "TIMING:",
+            "• Preparation time: 20 minutes",
+            "• Cooking time: 30 minutes",
+            "• Total time: 50 minutes",
+            "• Servings: 4 people"
+        ]
+        
+        recipes.append({
+            'name': f"Aromatic {', '.join(ingredients[:2]).title()} Curry",
+            'ingredients': all_ings,
+            'instructions': '\n'.join(instructions),
+            'image': '🍛',
+            'source': 'Practical Recipe',
+            'cuisine': 'Indian',
+            'difficulty': 'Medium',
+            'prep_time': '20 min',
+            'cook_time': '30 min'
+        })
 
-    return recipes[:6]  # Return maximum 6 recipes
+    return recipes[:8]  # Return maximum 8 recipes
 
 def clean_recipe_data(recipe_data):
     """Clean and validate recipe data"""
@@ -690,32 +1144,101 @@ def generate_recipes():
     print(f"🎯 Looking for recipes using: {selected_ingredients}")
 
     # Try to get recipes from Spoonacular first
-    spoonacular_recipes = search_spoonacular_recipes(selected_ingredients, 10)
+    spoonacular_recipes = search_spoonacular_recipes(selected_ingredients, 15)  # Get more recipes to filter from
     
     if spoonacular_recipes:
         print("✅ Found recipes from Spoonacular API")
-        # Process Spoonacular recipes
+        # Process and filter Spoonacular recipes to prioritize those using more ingredients
         processed_recipes = []
-        for recipe in spoonacular_recipes[:10]:
+        
+        for recipe in spoonacular_recipes:
             # Get detailed recipe information
             recipe_detail = get_recipe_instructions(recipe['id'])
             
             if recipe_detail:
                 cleaned_recipe = clean_recipe_data(recipe_detail)
                 if cleaned_recipe:
+                    # Calculate how many of our ingredients are used in this recipe
+                    recipe_ingredients = []
+                    if 'extendedIngredients' in recipe_detail:
+                        recipe_ingredients = [ing['name'].lower() for ing in recipe_detail['extendedIngredients']]
+                    elif 'ingredients' in cleaned_recipe:
+                        recipe_ingredients = [ing.lower() for ing in cleaned_recipe['ingredients']]
+                    
+                    # Count how many of our selected ingredients are used
+                    selected_lower = [ing.lower() for ing in selected_ingredients]
+                    used_count = sum(1 for ing in selected_lower if any(ing in recipe_ing for recipe_ing in recipe_ingredients))
+                    
+                    # Add usage percentage to recipe data
+                    cleaned_recipe['ingredient_usage'] = {
+                        'used': used_count,
+                        'total': len(selected_ingredients),
+                        'percentage': round((used_count / len(selected_ingredients)) * 100, 1)
+                    }
+                    
                     processed_recipes.append(cleaned_recipe)
             else:
                 # Fallback if detailed info not available
                 cleaned_recipe = clean_recipe_data(recipe)
                 if cleaned_recipe:
+                    # Estimate usage from the basic recipe data
+                    used_count = recipe.get('usedIngredientCount', 0)
+                    cleaned_recipe['ingredient_usage'] = {
+                        'used': used_count,
+                        'total': len(selected_ingredients),
+                        'percentage': round((used_count / len(selected_ingredients)) * 100, 1)
+                    }
                     processed_recipes.append(cleaned_recipe)
         
-        if processed_recipes:
-            return jsonify(processed_recipes)
+        # Sort recipes by ingredient usage percentage (highest first)
+        processed_recipes.sort(key=lambda x: x.get('ingredient_usage', {}).get('percentage', 0), reverse=True)
+        
+        # Count how many recipes use all ingredients
+        full_usage_recipes = [r for r in processed_recipes if r.get('ingredient_usage', {}).get('percentage', 0) == 100.0]
+        partial_usage_recipes = [r for r in processed_recipes if r.get('ingredient_usage', {}).get('percentage', 0) < 100.0]
+        
+        print(f"📊 Found {len(full_usage_recipes)} recipes using all ingredients, {len(partial_usage_recipes)} partial usage")
+        
+        # If we don't have enough recipes using all ingredients, add fallback recipes
+        if len(full_usage_recipes) < 3:
+            print("🎨 Adding fallback recipes to ensure at least 3 recipes use all ingredients")
+            fallback_recipes = generate_fallback_recipes(selected_ingredients)
+            
+            # Add usage information to fallback recipes
+            for recipe in fallback_recipes:
+                recipe['ingredient_usage'] = {
+                    'used': len(selected_ingredients),
+                    'total': len(selected_ingredients),
+                    'percentage': 100.0
+                }
+            
+            # Combine API recipes with fallback recipes, prioritizing full usage
+            combined_recipes = full_usage_recipes + fallback_recipes + partial_usage_recipes
+            
+            # Take the top 10 recipes total
+            final_recipes = combined_recipes[:10]
+            
+            print(f"📊 Final recipe count: {len([r for r in final_recipes if r.get('ingredient_usage', {}).get('percentage', 0) == 100.0])} full usage, {len([r for r in final_recipes if r.get('ingredient_usage', {}).get('percentage', 0) < 100.0])} partial usage")
+            
+            return jsonify(final_recipes)
+        else:
+            # We have enough full usage recipes, just return the top 10
+            final_recipes = processed_recipes[:10]
+            print(f"📊 Recipe usage stats: {[f'{r.get('ingredient_usage', {}).get('percentage', 0)}%' for r in final_recipes[:3]]}")
+            return jsonify(final_recipes)
     
-    # Use enhanced fallback recipe generation
-    print("🎨 Using creative fallback recipe generation")
+    # Use enhanced fallback recipe generation (guarantees using ALL ingredients)
+    print("🎨 Using creative fallback recipe generation (100% ingredient usage)")
     fallback_recipes = generate_fallback_recipes(selected_ingredients)
+    
+    # Add usage information to fallback recipes
+    for recipe in fallback_recipes:
+        recipe['ingredient_usage'] = {
+            'used': len(selected_ingredients),
+            'total': len(selected_ingredients),
+            'percentage': 100.0
+        }
+    
     return jsonify(fallback_recipes)
 
 @app.route('/api/health', methods=['GET'])
@@ -850,33 +1373,70 @@ def get_week_schedule():
 
 @app.route('/api/calendar/month', methods=['GET'])
 def get_month_schedule():
-    """Get scheduled meals for the current month"""
+    """Get all scheduled meals for the current month"""
     try:
-        today = datetime.now()
-        start_of_month = today.replace(day=1)
+        year = request.args.get('year', datetime.now().year, type=int)
+        month = request.args.get('month', datetime.now().month, type=int)
         
-        # Calculate end of month
-        if today.month == 12:
-            end_of_month = today.replace(year=today.year + 1, month=1, day=1) - timedelta(days=1)
+        # Get all dates in the month
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
         else:
-            end_of_month = today.replace(month=today.month + 1, day=1) - timedelta(days=1)
+            end_date = datetime(year, month + 1, 1) - timedelta(days=1)
         
         month_schedule = {}
-        current = start_of_month
-        while current <= end_of_month:
-            date_str = current.strftime('%Y-%m-%d')
+        current_date = start_date
+        while current_date <= end_date:
+            date_str = current_date.strftime('%Y-%m-%d')
             if date_str in scheduled_meals:
                 month_schedule[date_str] = scheduled_meals[date_str]
-            current += timedelta(days=1)
+            current_date += timedelta(days=1)
+        
+        return jsonify(month_schedule)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reminders/expiring', methods=['GET'])
+def get_expiring_ingredients():
+    """Get ingredients that are expiring soon and suggest recipes for them"""
+    try:
+        # This endpoint will be called by the frontend to get expiring ingredients
+        # The frontend will send the ingredients data from localStorage
+        return jsonify({'message': 'Reminder endpoint ready'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/reminders/recipes-for-expiring', methods=['POST'])
+def get_recipes_for_expiring_ingredients():
+    """Get recipe suggestions for ingredients that are expiring soon"""
+    try:
+        data = request.get_json()
+        expiring_ingredients = data.get('ingredients', [])
+        
+        if not expiring_ingredients:
+            return jsonify({'recipes': [], 'message': 'No expiring ingredients provided'})
+        
+        # Get recipe names for the expiring ingredients
+        ingredient_names = [ing['name'] for ing in expiring_ingredients]
+        
+        # Search for recipes using these ingredients
+        recipes = search_spoonacular_recipes(ingredient_names, number=5)
+        
+        # If no API recipes found, generate fallback recipes
+        if not recipes:
+            recipes = generate_fallback_recipes(ingredient_names)
+        
+        # Add expiration info to each recipe
+        for recipe in recipes:
+            recipe['expiring_ingredients'] = ingredient_names
+            recipe['urgency'] = 'high' if any(ing.get('days_until_expiry', 0) <= 1 for ing in expiring_ingredients) else 'medium'
         
         return jsonify({
-            'month_schedule': month_schedule,
-            'month_range': {
-                'start_date': start_of_month.strftime('%Y-%m-%d'),
-                'end_date': end_of_month.strftime('%Y-%m-%d')
-            }
+            'recipes': recipes,
+            'expiring_ingredients': expiring_ingredients,
+            'message': f'Found {len(recipes)} recipes for your expiring ingredients'
         })
-        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
