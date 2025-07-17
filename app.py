@@ -340,7 +340,7 @@ def generate_fallback_recipes(ingredients):
     def add_unique_ingredients(base, extras):
         base_lower = set(i.lower() for i in base)
         return base + [e for e in extras if e.lower() not in base_lower]
-    
+
     # Get ingredient categories
     categories = categorize_ingredients(ingredients)
     recipes = []
@@ -879,7 +879,7 @@ def generate_fallback_recipes(ingredients):
             'prep_time': '20 min',
             'cook_time': '12 min'
         })
-    
+
     # Recipe 7: Grilled Dish (uses all ingredients)
     if len(ingredients) >= 2:
         grill_extras = ['olive oil', 'lemon', 'salt', 'black pepper']
@@ -1203,7 +1203,6 @@ def generate_recipes():
         if len(full_usage_recipes) < 3:
             print("🎨 Adding fallback recipes to ensure at least 3 recipes use all ingredients")
             fallback_recipes = generate_fallback_recipes(selected_ingredients)
-            
             # Add usage information to fallback recipes
             for recipe in fallback_recipes:
                 recipe['ingredient_usage'] = {
@@ -1211,15 +1210,11 @@ def generate_recipes():
                     'total': len(selected_ingredients),
                     'percentage': 100.0
                 }
-            
             # Combine API recipes with fallback recipes, prioritizing full usage
             combined_recipes = full_usage_recipes + fallback_recipes + partial_usage_recipes
-            
             # Take the top 10 recipes total
             final_recipes = combined_recipes[:10]
-            
             print(f"📊 Final recipe count: {len([r for r in final_recipes if r.get('ingredient_usage', {}).get('percentage', 0) == 100.0])} full usage, {len([r for r in final_recipes if r.get('ingredient_usage', {}).get('percentage', 0) < 100.0])} partial usage")
-            
             return jsonify(final_recipes)
         else:
             # We have enough full usage recipes, just return the top 10
@@ -1457,4 +1452,4 @@ if __name__ == '__main__':
     print("📁 Open dishdiscovery.html in your browser")
     print("⏹️  Press Ctrl+C to stop the server")
     print("-" * 50)
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5001) 
