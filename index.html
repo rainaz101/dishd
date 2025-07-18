@@ -1966,6 +1966,11 @@
                 const dayMeals = scheduledMeals[dateString] || {};
                 const hasMeal = Object.keys(dayMeals).length > 0;
                 
+                // Debug logging for meal detection
+                if (hasMeal) {
+                    console.log(`Day ${dateString} has meals:`, dayMeals);
+                }
+                
                 // Determine meal-specific CSS classes
                 let mealClasses = '';
                 if (hasMeal) {
@@ -2080,9 +2085,25 @@
                 if (response.ok) {
                     const result = await response.json();
                     alert(result.message);
-                    loadScheduledMeals();
-                    renderCalendar(); // Refresh calendar to show new meal
+                    
+                    // Immediately add the meal to the local scheduledMeals object
+                    if (!scheduledMeals[selectedCalendarDate]) {
+                        scheduledMeals[selectedCalendarDate] = {};
+                    }
+                    scheduledMeals[selectedCalendarDate][selectedMealType] = {
+                        recipe: recipe,
+                        scheduled_at: new Date().toISOString()
+                    };
+                    
+                    // Refresh the calendar and meal list
+                    renderCalendar();
+                    displayScheduledMeals();
+                    
+                    // Hide the form and clear the input
                     document.getElementById('scheduleForm').style.display = 'none';
+                    document.getElementById('mealNameInput').value = '';
+                    
+                    console.log('Meal scheduled successfully:', scheduledMeals);
                 } else {
                     const error = await response.json();
                     alert('Error scheduling meal: ' + error.error);
@@ -2095,9 +2116,11 @@
 
         async function loadScheduledMeals() {
             try {
-                const today = new Date();
-                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                // Load meals for the current calendar view (not just current month)
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                const startOfMonth = new Date(year, month, 1);
+                const endOfMonth = new Date(year, month + 1, 0);
                 
                 const startDateStr = startOfMonth.getFullYear() + '-' + 
                     String(startOfMonth.getMonth() + 1).padStart(2, '0') + '-' + 
@@ -2105,12 +2128,18 @@
                 const endDateStr = endOfMonth.getFullYear() + '-' + 
                     String(endOfMonth.getMonth() + 1).padStart(2, '0') + '-' + 
                     String(endOfMonth.getDate()).padStart(2, '0');
+                
+                console.log('Loading meals for date range:', startDateStr, 'to', endDateStr);
+                
                 const response = await fetch(`http://localhost:5000/api/calendar/schedule?start_date=${startDateStr}&end_date=${endDateStr}`);
                 
                 if (response.ok) {
                     const data = await response.json();
                     scheduledMeals = data.scheduled_meals || {};
+                    console.log('Loaded scheduled meals:', scheduledMeals);
                     displayScheduledMeals();
+                } else {
+                    console.error('Failed to load scheduled meals:', response.status);
                 }
             } catch (error) {
                 console.error('Error loading scheduled meals:', error);
@@ -2162,15 +2191,29 @@
                         method: 'DELETE'
                     });
                     
-                    if (response.ok) {
-                        const result = await response.json();
-                        alert(result.message);
-                        loadScheduledMeals();
-                        renderCalendar(); // Refresh calendar
-                    } else {
-                        const error = await response.json();
-                        alert('Error removing meal: ' + error.error);
+                                    if (response.ok) {
+                    const result = await response.json();
+                    alert(result.message);
+                    
+                    // Immediately remove the meal from the local scheduledMeals object
+                    if (scheduledMeals[date] && scheduledMeals[date][mealType]) {
+                        delete scheduledMeals[date][mealType];
+                        
+                        // Clean up empty date entries
+                        if (Object.keys(scheduledMeals[date]).length === 0) {
+                            delete scheduledMeals[date];
+                        }
                     }
+                    
+                    // Refresh the calendar and meal list
+                    renderCalendar();
+                    displayScheduledMeals();
+                    
+                    console.log('Meal removed successfully:', scheduledMeals);
+                } else {
+                    const error = await response.json();
+                    alert('Error removing meal: ' + error.error);
+                }
                 } catch (error) {
                     console.error('Error removing scheduled meal:', error);
                     alert('Error removing meal. Please check that the server is running.');
